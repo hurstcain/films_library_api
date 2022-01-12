@@ -4,10 +4,16 @@ from django.contrib.auth.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
-    tv_added = serializers.PrimaryKeyRelatedField(many=True, queryset=TV.objects.all())
-    movies_added = serializers.PrimaryKeyRelatedField(many=True, queryset=Movie.objects.all())
-    films_watched = serializers.PrimaryKeyRelatedField(many=True, queryset=FilmsWatched.objects.all())
-    films_to_watch = serializers.PrimaryKeyRelatedField(many=True, queryset=FilmsToWatch.objects.all())
+    class Meta:
+        model = User
+        fields = ['username', 'password', 'email', 'first_name', 'last_name', 'is_superuser', 'is_staff', 'is_active']
+
+
+class UserSerializerList(serializers.HyperlinkedModelSerializer):
+    tv_added = serializers.HyperlinkedRelatedField(many=True, view_name='tv-detail', read_only=True)
+    movies_added = serializers.HyperlinkedRelatedField(many=True, view_name='movie-detail', read_only=True)
+    films_watched = serializers.HyperlinkedRelatedField(many=True, view_name='watched-detail', read_only=True)
+    films_to_watch = serializers.HyperlinkedRelatedField(many=True, view_name='to-watch-detail', read_only=True)
 
     class Meta:
         model = User
@@ -31,24 +37,25 @@ class MovieSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'year', 'rating', 'genre', 'duration', 'added_by']
 
 
-class WatchedSerializer(serializers.ModelSerializer):
+class WatchedSerializer(serializers.HyperlinkedModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')
+    id = serializers.HyperlinkedIdentityField(view_name='watched-detail')
 
     class Meta:
         model = FilmsWatched
-        fields = ['user', 'tv', 'movie', 'score', 'review']
+        fields = ['id', 'user', 'tv', 'movie', 'score', 'review']
 
 
 class TVWatchedSerializer(WatchedSerializer):
     class Meta:
         model = FilmsWatched
-        fields = ['user', 'tv', 'score', 'review']
+        fields = ['id', 'user', 'tv', 'score', 'review']
 
 
 class MovieWatchedSerializer(WatchedSerializer):
     class Meta:
         model = FilmsWatched
-        fields = ['user', 'movie', 'score', 'review']
+        fields = ['id', 'user', 'movie', 'score', 'review']
 
 
 class ToWatchSerializer(serializers.ModelSerializer):
