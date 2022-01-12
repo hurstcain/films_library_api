@@ -1,20 +1,7 @@
 from rest_framework import generics
 from rest_framework import permissions
 from film_library.api.serializers import *
-
-
-class IsSuperuser(permissions.BasePermission):
-    def has_permission(self, request, view):
-        if User.objects.filter(username=request.user, is_superuser=True):
-            return True
-
-
-class IsSuperuserOrReadOnly(permissions.BasePermission):
-    def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        if User.objects.filter(username=request.user, is_superuser=True):
-            return True
+from film_library.api.permissions import IsSuperuser, IsSuperuserOrReadOnly
 
 
 class UserList(generics.ListAPIView):
