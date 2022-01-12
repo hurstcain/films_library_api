@@ -54,8 +54,8 @@ class Movie(Films):
 
 class FilmsWatched(models.Model):
     user = models.ForeignKey('auth.User', related_name='films_watched', on_delete=models.CASCADE)
-    tv = models.OneToOneField(TV, null=True, blank=True, on_delete=models.CASCADE)
-    movie = models.OneToOneField(Movie, null=True, blank=True, on_delete=models.CASCADE)
+    tv = models.ForeignKey(TV, null=True, blank=True, on_delete=models.CASCADE)
+    movie = models.ForeignKey(Movie, null=True, blank=True, on_delete=models.CASCADE)
     score = models.DecimalField(
         max_digits=3,
         decimal_places=1,
@@ -76,6 +76,18 @@ class FilmsWatched(models.Model):
         else:
             super(FilmsWatched, self).save(*args, **kwargs)
 
+    def is_movie(self):
+        if self.movie is not None:
+            return True
+        else:
+            return False
+
+    def is_tv(self):
+        if self.tv is not None:
+            return True
+        else:
+            return False
+
     def __str__(self):
         if self.tv is not None:
             return f'{self.user}, {self.tv}'
@@ -84,12 +96,13 @@ class FilmsWatched(models.Model):
 
     class Meta:
         ordering = ['user']
+        unique_together = ('user', 'tv', 'movie')
 
 
 class FilmsToWatch(models.Model):
     user = models.ForeignKey('auth.User', related_name='films_to_watch', on_delete=models.CASCADE)
-    tv = models.OneToOneField(TV, null=True, blank=True, on_delete=models.CASCADE)
-    movie = models.OneToOneField(Movie, null=True, blank=True, on_delete=models.CASCADE)
+    tv = models.ForeignKey(TV, null=True, blank=True, on_delete=models.CASCADE)
+    movie = models.ForeignKey(Movie, null=True, blank=True, on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
         if self.tv is None and self.movie is None:
@@ -99,6 +112,18 @@ class FilmsToWatch(models.Model):
         else:
             super(FilmsToWatch, self).save(*args, **kwargs)
 
+    def is_movie(self):
+        if self.movie is not None:
+            return True
+        else:
+            return False
+
+    def is_tv(self):
+        if self.tv is not None:
+            return True
+        else:
+            return False
+
     def __str__(self):
         if self.tv is not None:
             return f'{self.user}, {self.tv}'
@@ -107,3 +132,4 @@ class FilmsToWatch(models.Model):
 
     class Meta:
         ordering = ['user']
+        unique_together = ('user', 'tv', 'movie')
