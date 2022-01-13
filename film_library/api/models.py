@@ -96,7 +96,7 @@ class FilmsWatched(models.Model):
 
     class Meta:
         ordering = ['user']
-        unique_together = ('user', 'tv', 'movie')
+        unique_together = [['user', 'tv'], ['user', 'movie']]
 
 
 class FilmsToWatch(models.Model):
@@ -132,4 +132,4 @@ class FilmsToWatch(models.Model):
 
     class Meta:
         ordering = ['user']
-        unique_together = ('user', 'tv', 'movie')
+        unique_together = [['user', 'tv'], ['user', 'movie']]
