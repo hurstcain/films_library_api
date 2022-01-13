@@ -6,7 +6,7 @@ from rest_framework.reverse import reverse
 from django.contrib.auth.models import User
 from film_library.api.models import TV, Movie, FilmsWatched, FilmsToWatch
 import film_library.api.serializers as ser
-from film_library.api.permissions import IsSuperuser, IsSuperuserOrReadOnly
+from film_library.api.permissions import IsSuperuser, IsSuperuserOrReadOnly, IsCreatorOrReadOnly
 
 
 @api_view(['GET'])
@@ -19,21 +19,26 @@ def api_root(request, format=None):
     })
 
 
-class UserList(generics.ListAPIView):
+class UserList(generics.ListCreateAPIView):
     queryset = User.objects.all()
-    serializer_class = ser.UserSerializerList
     permission_classes = [IsSuperuser]
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return ser.UserSerializerList
+        elif self.request.method == 'POST':
+            return ser.UserSerializerCreateDetail
 
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
-    serializer_class = ser.UserSerializer
+    serializer_class = ser.UserSerializerCreateDetail
     permission_classes = [IsSuperuser]
 
 
 class MovieList(generics.ListCreateAPIView):
     queryset = Movie.objects.all()
-    serializer_class = ser.MovieSerializer
+    serializer_class = ser.MovieSerializerList
     permission_classes = [IsSuperuserOrReadOnly]
 
     def perform_create(self, serializer):
@@ -42,7 +47,7 @@ class MovieList(generics.ListCreateAPIView):
 
 class MovieDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Movie.objects.all()
-    serializer_class = ser.MovieSerializer
+    serializer_class = ser.MovieSerializerDetail
     permission_classes = [IsSuperuserOrReadOnly]
 
     def perform_create(self, serializer):
@@ -51,7 +56,7 @@ class MovieDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class TVList(generics.ListCreateAPIView):
     queryset = TV.objects.all()
-    serializer_class = ser.TVSerializer
+    serializer_class = ser.TVSerializerList
     permission_classes = [IsSuperuserOrReadOnly]
 
     def perform_create(self, serializer):
@@ -60,7 +65,7 @@ class TVList(generics.ListCreateAPIView):
 
 class TVDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = TV.objects.all()
-    serializer_class = ser.TVSerializer
+    serializer_class = ser.TVSerializerDetail
     permission_classes = [IsSuperuserOrReadOnly]
 
     def perform_create(self, serializer):
@@ -76,7 +81,7 @@ class WatchedList(generics.ListAPIView):
 
 
 class WatchedDetail(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsCreatorOrReadOnly]
 
     def get_queryset(self):
         return FilmsWatched.objects.filter(user=self.request.user)
@@ -88,6 +93,11 @@ class WatchedDetail(generics.RetrieveUpdateDestroyAPIView):
             return ser.TVWatchedSerializer
         elif obj[0].is_movie():
             return ser.MovieWatchedSerializer
+
+
+class AllUsersWatchedDetail(WatchedDetail):
+    def get_queryset(self):
+        return FilmsWatched.objects.all()
 
 
 class TVWatchedList(generics.ListCreateAPIView):
@@ -124,10 +134,6 @@ class ToWatchDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # print(self.request.get_full_path())
-        # if self.request.get_full_path() == '/user/':
-        #     return FilmsToWatch.objects.all()
-        # else:
         return FilmsToWatch.objects.filter(user=self.request.user)
 
     def get_serializer_class(self):
