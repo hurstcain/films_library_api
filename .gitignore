@@ -1,2 +1,3 @@
-film_library/api/migrations
-film_library/config.py
+api/migrations
+__pycache__
+config.py
