@@ -5,11 +5,11 @@ from film_library.api.models import *
 
 
 class UserSerializerList(serializers.HyperlinkedModelSerializer):
+    id = serializers.HyperlinkedIdentityField(view_name='user-detail')
     tv_added = serializers.HyperlinkedRelatedField(many=True, view_name='tv-detail', read_only=True)
     movies_added = serializers.HyperlinkedRelatedField(many=True, view_name='movie-detail', read_only=True)
     films_watched = serializers.HyperlinkedRelatedField(many=True, view_name='user-watched-list', read_only=True)
-    films_to_watch = serializers.HyperlinkedRelatedField(many=True, view_name='to-watch-detail', read_only=True)
-    id = serializers.HyperlinkedIdentityField(view_name='user-detail')
+    films_to_watch = serializers.HyperlinkedRelatedField(many=True, view_name='user-to-watch-list', read_only=True)
 
     class Meta:
         model = User
@@ -78,33 +78,66 @@ class WatchedSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['id', 'user', 'tv', 'movie', 'score', 'review']
 
 
-class TVWatchedSerializer(WatchedSerializer):
+class TVWatchedSerializerList(WatchedSerializer):
     class Meta:
         model = FilmsWatched
         fields = ['id', 'user', 'tv', 'score', 'review']
 
 
-class MovieWatchedSerializer(WatchedSerializer):
+class TVWatchedSerializerDetail(serializers.HyperlinkedModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+
+    class Meta:
+        model = FilmsWatched
+        fields = ['id', 'user', 'tv', 'score', 'review']
+
+
+class MovieWatchedSerializerList(WatchedSerializer):
     class Meta:
         model = FilmsWatched
         fields = ['id', 'user', 'movie', 'score', 'review']
 
 
-class ToWatchSerializer(serializers.ModelSerializer):
+class MovieWatchedSerializerDetail(serializers.HyperlinkedModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+
+    class Meta:
+        model = FilmsWatched
+        fields = ['id', 'user', 'movie', 'score', 'review']
+
+
+class ToWatchSerializer(serializers.HyperlinkedModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+    id = serializers.HyperlinkedIdentityField(view_name='to-watch-detail')
+
+    class Meta:
+        model = FilmsToWatch
+        fields = ['id', 'user', 'tv', 'movie']
+
+
+class TVToWatchSerializerList(ToWatchSerializer):
+    class Meta:
+        model = FilmsToWatch
+        fields = ['id', 'user', 'tv']
+
+
+class TVToWatchSerializerDetail(serializers.HyperlinkedModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')
 
     class Meta:
         model = FilmsToWatch
-        fields = ['user', 'tv', 'movie']
+        fields = ['id', 'user', 'tv']
 
 
-class TVToWatchSerializer(ToWatchSerializer):
+class MovieToWatchSerializerList(ToWatchSerializer):
     class Meta:
         model = FilmsToWatch
-        fields = ['user', 'tv']
+        fields = ['id', 'user', 'movie']
 
 
-class MovieToWatchSerializer(ToWatchSerializer):
+class MovieToWatchSerializerDetail(serializers.HyperlinkedModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+
     class Meta:
         model = FilmsToWatch
-        fields = ['user', 'movie']
+        fields = ['id', 'user', 'movie']

@@ -7,6 +7,7 @@ urlpatterns = [
     path('login/', admin.site.urls, name='admin'),
     path('user/', views.UserList.as_view(), name='user-list'),
     path('user/watched-list/<pk>/', views.AllUsersWatchedDetail.as_view(), name='user-watched-list'),
+    path('user/to-watch-list/<pk>/', views.AllUsersToWatchDetail.as_view(), name='user-to-watch-list'),
     path('user/<pk>/', views.UserDetail.as_view(), name='user-detail'),
     path('movie/', views.MovieList.as_view(), name='movie-list'),
     path('movie/<pk>/', views.MovieDetail.as_view(), name='movie-detail'),
