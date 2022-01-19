@@ -11,6 +11,10 @@ from film_library.api.permissions import IsSuperuser, IsSuperuserOrReadOnly, IsC
 
 @api_view(['GET'])
 def api_root(request, format=None):
+    """
+    Стартовая страница с ссылками на другие страницы.
+    """
+
     return Response({
         'login': reverse('admin:index', request=request, format=format),
         'tv list': reverse('tv-list', request=request, format=format),
@@ -26,10 +30,18 @@ def api_root(request, format=None):
 
 
 class UserList(generics.ListCreateAPIView):
+    """
+    Представление для вывода списка пользователей.
+    """
+
     queryset = User.objects.all()
     permission_classes = [IsSuperuser]
 
     def get_serializer_class(self):
+        """
+        В зависимости от метода вызываются разные сериализаторы.
+        """
+
         if self.request.method == 'GET':
             return ser.UserSerializerList
         elif self.request.method == 'POST':
@@ -37,12 +49,20 @@ class UserList(generics.ListCreateAPIView):
 
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Представление для вывода каждого отдельного пользователя.
+    """
+
     queryset = User.objects.all()
     serializer_class = ser.UserSerializerCreateDetail
     permission_classes = [IsSuperuser]
 
 
 class MovieList(generics.ListCreateAPIView):
+    """
+    Представление для вывода списка фильмов.
+    """
+
     queryset = Movie.objects.all()
     serializer_class = ser.MovieSerializerList
     permission_classes = [IsSuperuserOrReadOnly]
@@ -52,6 +72,10 @@ class MovieList(generics.ListCreateAPIView):
 
 
 class MovieDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Представление для вывода каждого отдельного фильма.
+    """
+
     queryset = Movie.objects.all()
     serializer_class = ser.MovieSerializerDetail
     permission_classes = [IsSuperuserOrReadOnly]
@@ -61,6 +85,10 @@ class MovieDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class TVList(generics.ListCreateAPIView):
+    """
+    Представление для вывода списка сериалов.
+    """
+
     queryset = TV.objects.all()
     serializer_class = ser.TVSerializerList
     permission_classes = [IsSuperuserOrReadOnly]
@@ -70,6 +98,10 @@ class TVList(generics.ListCreateAPIView):
 
 
 class TVDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Представление для вывода каждого отдельного сериала.
+    """
+
     queryset = TV.objects.all()
     serializer_class = ser.TVSerializerDetail
     permission_classes = [IsSuperuserOrReadOnly]
@@ -79,6 +111,11 @@ class TVDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class WatchedList(generics.ListAPIView):
+    """
+    Представление для вывода списка просмотренных фильмов и сериалов.
+    Для каждого пользователя выводятся свои просмотренные фильмы и сериалы.
+    """
+
     serializer_class = ser.WatchedSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -87,12 +124,22 @@ class WatchedList(generics.ListAPIView):
 
 
 class WatchedDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Представление для вывода каждого отдельного просмотренного фильма или сериала.
+    Для каждого пользователя выводятся свои просмотренные фильмы и сериалы, также
+    редактировать список может только хозяин списка.
+    """
+
     permission_classes = [permissions.IsAuthenticated, IsCreatorOrReadOnly]
 
     def get_queryset(self):
         return FilmsWatched.objects.filter(user=self.request.user)
 
     def get_serializer_class(self):
+        """
+        Для фильма и сериала возвращаются разные сериализаторы.
+        """
+
         obj = FilmsWatched.objects.filter(pk=int(self.kwargs['pk']))
 
         if obj[0].is_tv():
@@ -102,11 +149,21 @@ class WatchedDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class AllUsersWatchedDetail(WatchedDetail):
+    """
+    Представление для вывода просмотренных фильмов и сериалов всех пользователей.
+    Используется при просмотре и редактировании данных пользователей.
+    """
+
     def get_queryset(self):
         return FilmsWatched.objects.all()
 
 
 class TVWatchedList(generics.ListCreateAPIView):
+    """
+    Представление для вывода списка просмотренных сериалов.
+    Для каждого пользователя выводятся свои просмотренные сериалы.
+    """
+
     serializer_class = ser.TVWatchedSerializerList
     permission_classes = [permissions.IsAuthenticated]
 
@@ -118,6 +175,11 @@ class TVWatchedList(generics.ListCreateAPIView):
 
 
 class MovieWatchedList(generics.ListCreateAPIView):
+    """
+    Представление для вывода списка просмотренных фильмов.
+    Для каждого пользователя выводятся свои просмотренные фильмы.
+    """
+
     serializer_class = ser.MovieWatchedSerializerList
     permission_classes = [permissions.IsAuthenticated]
 
@@ -129,6 +191,11 @@ class MovieWatchedList(generics.ListCreateAPIView):
 
 
 class ToWatchList(generics.ListAPIView):
+    """
+    Представление для вывода списка фильмов и сериалов желаемых к просмотру.
+    Для каждого пользователя выводятся свои фильмы и сериалы желаемые к просмотру.
+    """
+
     serializer_class = ser.ToWatchSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -137,6 +204,12 @@ class ToWatchList(generics.ListAPIView):
 
 
 class ToWatchDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Представление для вывода каждого отдельного фильма или сериала желаемого к просмотру.
+    Для каждого пользователя выводятся свои фильмы и сериалы желаемые к просмотру, также
+    редактировать список может только хозяин списка.
+    """
+
     permission_classes = [permissions.IsAuthenticated, IsCreatorOrReadOnly]
 
     def get_queryset(self):
@@ -152,11 +225,21 @@ class ToWatchDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class AllUsersToWatchDetail(ToWatchDetail):
+    """
+    Представление для вывода фильмов и сериалов желаемых к просмотру всех пользователей.
+    Используется при просмотре и редактировании данных пользователей.
+    """
+
     def get_queryset(self):
         return FilmsToWatch.objects.all()
 
 
 class TVToWatchList(generics.ListCreateAPIView):
+    """
+    Представление для вывода списка сериалов желаемых к просмотру.
+    Для каждого пользователя выводятся свои сериалы желаемые к просмотру.
+    """
+
     serializer_class = ser.TVToWatchSerializerList
     permission_classes = [permissions.IsAuthenticated]
 
@@ -168,6 +251,11 @@ class TVToWatchList(generics.ListCreateAPIView):
 
 
 class MovieToWatchList(generics.ListCreateAPIView):
+    """
+    Представление для вывода списка фильмов желаемых к просмотру.
+    Для каждого пользователя выводятся свои фильмы желаемые к просмотру.
+    """
+
     serializer_class = ser.MovieToWatchSerializerList
     permission_classes = [permissions.IsAuthenticated]
 
