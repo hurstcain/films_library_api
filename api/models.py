@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
+from rest_framework.serializers import ValidationError
 
 
 class Films(models.Model):
@@ -17,16 +18,6 @@ class Films(models.Model):
         validators=[
             MaxValueValidator(2030),
             MinValueValidator(1880)
-        ]
-    )
-    rating = models.DecimalField(
-        max_digits=3,
-        decimal_places=1,
-        blank=True,
-        null=True,
-        validators=[
-            MaxValueValidator(10),
-            MinValueValidator(0)
         ]
     )
     genre = ArrayField(
@@ -146,10 +137,18 @@ class FilmsWatched(FilmsWatchedAndFilmsToWatchAbstractClass):
         """
 
         if self.tv is None and self.movie is None:
-            raise AssertionError('Укажите фильм или сериал')
+            raise ValidationError('Укажите фильм или сериал')
         elif self.tv is not None and self.movie is not None:
-            raise AssertionError('Укажите или фильм или сериал')
+            raise ValidationError('Укажите или фильм или сериал')
         else:
+            if self.tv is not None:
+                obj = FilmsToWatch.objects.filter(tv=self.tv, user=self.user)
+                if obj:
+                    obj.delete()
+            elif self.movie is not None:
+                obj = FilmsToWatch.objects.filter(movie=self.movie, user=self.user)
+                if obj:
+                    obj.delete()
             super(FilmsWatched, self).save(*args, **kwargs)
 
 
@@ -168,8 +167,14 @@ class FilmsToWatch(FilmsWatchedAndFilmsToWatchAbstractClass):
         """
 
         if self.tv is None and self.movie is None:
-            raise AssertionError('Укажите фильм или сериал')
+            raise ValidationError('Укажите фильм или сериал')
         elif self.tv is not None and self.movie is not None:
-            raise AssertionError('Укажите или фильм или сериал')
+            raise ValidationError('Укажите или фильм или сериал')
         else:
+            if self.tv is not None:
+                if FilmsWatched.objects.filter(tv=self.tv, user=self.user):
+                    raise ValidationError('Вы уже посмотрели данный сериал')
+            elif self.movie is not None:
+                if FilmsWatched.objects.filter(movie=self.movie, user=self.user):
+                    raise ValidationError('Вы уже посмотрели данный фильм')
             super(FilmsToWatch, self).save(*args, **kwargs)
