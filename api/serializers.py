@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
+from django.db.models import Avg
 from film_library.api.models import TV, Movie, FilmsWatched, FilmsToWatch
 
 
@@ -50,10 +51,15 @@ class TVSerializerList(serializers.HyperlinkedModelSerializer):
 
     added_by = serializers.ReadOnlyField(source='added_by.username')
     id = serializers.HyperlinkedIdentityField(view_name='tv-detail')
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = TV
         fields = ['id', 'title', 'year', 'rating', 'genre', 'number_of_episodes', 'avg_episode_duration', 'added_by']
+
+    @staticmethod
+    def get_rating(obj):
+        return FilmsWatched.objects.filter(tv=obj.pk).aggregate(Avg('score'))['score__avg']
 
 
 class TVSerializerDetail(serializers.ModelSerializer):
@@ -62,10 +68,15 @@ class TVSerializerDetail(serializers.ModelSerializer):
     """
 
     added_by = serializers.ReadOnlyField(source='added_by.username')
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = TV
         fields = ['id', 'title', 'year', 'rating', 'genre', 'number_of_episodes', 'avg_episode_duration', 'added_by']
+
+    @staticmethod
+    def get_rating(obj):
+        return FilmsWatched.objects.filter(tv=obj.pk).aggregate(Avg('score'))['score__avg']
 
 
 class MovieSerializerList(serializers.HyperlinkedModelSerializer):
@@ -75,10 +86,15 @@ class MovieSerializerList(serializers.HyperlinkedModelSerializer):
 
     added_by = serializers.ReadOnlyField(source='added_by.username')
     id = serializers.HyperlinkedIdentityField(view_name='movie-detail')
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Movie
         fields = ['id', 'title', 'year', 'rating', 'genre', 'duration', 'added_by']
+
+    @staticmethod
+    def get_rating(obj):
+        return FilmsWatched.objects.filter(movie=obj.pk).aggregate(Avg('score'))['score__avg']
 
 
 class MovieSerializerDetail(serializers.ModelSerializer):
@@ -87,10 +103,15 @@ class MovieSerializerDetail(serializers.ModelSerializer):
     """
 
     added_by = serializers.ReadOnlyField(source='added_by.username')
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Movie
         fields = ['id', 'title', 'year', 'rating', 'genre', 'duration', 'added_by']
+
+    @staticmethod
+    def get_rating(obj):
+        return FilmsWatched.objects.filter(movie=obj.pk).aggregate(Avg('score'))['score__avg']
 
 
 class WatchedSerializer(serializers.HyperlinkedModelSerializer):
